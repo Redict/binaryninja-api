@@ -3877,6 +3877,8 @@ extern "C"
 	BINARYNINJACOREAPI void BNProjectBeginBulkOperation(BNProject* project);
 	BINARYNINJACOREAPI void BNProjectEndBulkOperation(BNProject* project);
 
+	BINARYNINJACOREAPI BNRemoteProject* BNProjectGetRemoteProject(BNProject* project);
+
 	// ProjectFile object
 	BINARYNINJACOREAPI BNProjectFile* BNNewProjectFileReference(BNProjectFile* file);
 	BINARYNINJACOREAPI void BNFreeProjectFile(BNProjectFile* file);
