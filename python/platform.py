@@ -85,6 +85,7 @@ class Platform(metaclass=_PlatformMetaClass):
 			self._cb.getGlobalRegisters = self._cb.getGlobalRegisters.__class__(self._get_global_regs)
 			self._cb.freeRegisterList = self._cb.freeRegisterList.__class__(self._free_register_list)
 			self._cb.getGlobalRegisterType = self._cb.getGlobalRegisterType.__class__(self._get_global_reg_type)
+			self._cb.getAddressSize = self._cb.getAddressSize.__class__(lambda ctxt: self._get_address_size)
 			self._cb.adjustTypeParserInput = self._cb.adjustTypeParserInput.__class__(self._adjust_type_parser_input)
 			self._cb.freeTypeParserInput = self._cb.freeTypeParserInput.__class__(self._free_type_parser_input)
 			self._pending_reg_lists = {}
@@ -164,6 +165,13 @@ class Platform(metaclass=_PlatformMetaClass):
 				handle = core.BNNewTypeReference(type_obj.handle)
 				return ctypes.cast(handle, ctypes.c_void_p).value
 			return None
+		except:
+			log_error(traceback.format_exc())
+			return None
+
+	def _get_address_size(self, ctxt):
+		try:
+			return core.BNGetPlatformAddressSize(self.handle)
 		except:
 			log_error(traceback.format_exc())
 			return None
