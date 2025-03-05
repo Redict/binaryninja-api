@@ -2868,16 +2868,6 @@ uint64_t ElfViewType::ParseHeaders(BinaryView* data, ElfIdent& ident, ElfCommonH
 	commonHeader.arch = reader.Read16();
 	commonHeader.version = reader.Read32();
 
-	// Promote the file class to 64-bit
-	// TODO potentially add a setting to allow the user to override header interpretation
-	if ((commonHeader.type == ET_EXEC) && (commonHeader.arch == EM_X86_64) && (ident.fileClass == 1))
-	{
-		ident.fileClass = 2;
-		m_logger->LogWarn(
-			"Executable file claims to be 32-bit but specifies a 64-bit architecture. It is likely malformed or "
-			"malicious. Treating it as 64-bit.");
-	}
-
 	// parse Elf64Header
 	if (ident.fileClass == 1) // 32-bit ELF
 	{
