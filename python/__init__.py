@@ -90,6 +90,11 @@ from .log import (
 )
 from .log import log as log_at_level
 from .deprecation import *
+from .sharedcache import *
+# For PyCharm
+# noinspection PyUnreachableCode
+if False:
+	from ..view.sharedcache.api.python import *
 import warnings
 # We must alter the filter settings for DeprecatedWarning. Otherwise, it will never show up.
 # https://docs.python.org/3/library/warnings.html#default-warning-filter
