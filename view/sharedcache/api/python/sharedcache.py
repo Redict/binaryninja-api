@@ -265,3 +265,15 @@ class SharedCache:
 
 	def find_symbol_at_addr_and_apply_to_addr(self, symbolAddress, targetAddress, triggerReanalysis) -> None:
 		sccore.BNDSCFindSymbolAtAddressAndApplyToAddress(self.handle, symbolAddress, targetAddress, triggerReanalysis)
+
+
+def _get_dsc(instance: binaryninja.PythonScriptingInstance):
+	if instance.interpreter.active_view is None:
+		return None
+	return SharedCache(instance.interpreter.active_view)
+
+
+binaryninja.PythonScriptingProvider.register_magic_variable(
+	"dsc",
+	_get_dsc
+)
