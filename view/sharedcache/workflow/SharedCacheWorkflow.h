@@ -8,7 +8,9 @@ class SharedCacheWorkflow
 {
 public:
 	static void ProcessOffImageCall(Ref<AnalysisContext> ctx, Ref<SharedCacheAPI::SharedCache> cache, Ref<Function> func, Ref<MediumLevelILFunction> il, const MediumLevelILInstruction instr, bool applySymbolIfFoundToCurrentFunction = false);
+	static void ProcessOffImageLoad(Ref<AnalysisContext> ctx, Ref<SharedCacheAPI::SharedCache> cache, Ref<Function> func, Ref<MediumLevelILFunction> il, const MediumLevelILInstruction instr);
 	static void FixupStubs(Ref<AnalysisContext> ctx);
+	static void FixupSymbols(Ref<AnalysisContext> ctx);
 	static void Register();
 };
 

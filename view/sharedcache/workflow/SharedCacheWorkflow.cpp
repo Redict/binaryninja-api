@@ -145,6 +145,23 @@ void SharedCacheWorkflow::ProcessOffImageCall(Ref<AnalysisContext> ctx, Ref<Shar
 }
 
 
+void SharedCacheWorkflow::ProcessOffImageLoad(Ref<AnalysisContext> ctx, Ref<SharedCache> cache, Ref<Function> func, Ref<MediumLevelILFunction> mssa, const MediumLevelILInstruction dest)
+{
+	auto bv = func->GetView();
+	WorkerPriorityEnqueue([bv=std::move(bv), cache=std::move(cache), dest=dest, func=func]() {
+		auto workflowState = GetGlobalWorkflowState(bv);
+		if (dest.operation != MLIL_CONST_PTR && dest.operation != MLIL_CONST)
+			return;
+		auto addr = (uint64_t)dest.GetConstant();
+		if (!cache->GetNameForAddress(addr).empty()
+			&& cache->LoadSectionAtAddress(addr))
+		{
+			func->Reanalyze();
+		}
+	});
+}
+
+
 void SharedCacheWorkflow::FixupStubs(Ref<AnalysisContext> ctx)
 {
 	try
@@ -315,6 +332,76 @@ void SharedCacheWorkflow::FixupStubs(Ref<AnalysisContext> ctx)
 }
 
 
+void SharedCacheWorkflow::FixupSymbols(Ref<AnalysisContext> ctx)
+{
+	const auto func = ctx->GetFunction();
+	const auto arch = func->GetArchitecture();
+	const auto bv = func->GetView();
+
+	const auto mlil = ctx->GetMediumLevelILFunction();
+	if (!mlil)
+	{
+		return;
+	}
+	const auto ssa = mlil->GetSSAForm();
+
+	for (auto& bb: ssa->GetBasicBlocks())
+	{
+		for (size_t i = bb->GetStart(); i < bb->GetEnd(); i ++)
+		{
+			const auto& instr = ssa->GetInstruction(i);
+			instr.VisitExprs([&](const MediumLevelILInstruction& expr) -> bool {
+				// (MLIL_LOAD_SSA.q [(MLIL_CONST_PTR.q 0x1e3cf31d8)].q @ mem#2)
+				// want to load 0x1e3cf31d8 and then later *0x1e3cf31d8
+				if (expr.operation == MLIL_LOAD_SSA)
+				{
+					auto srcExpr = expr.GetSourceExpr<MLIL_LOAD_SSA>();
+					if (srcExpr.operation == MLIL_CONST_PTR)
+					{
+						auto loadAddr = (uint64_t)srcExpr.GetConstant();
+						// Check if this constant is in an unloaded region
+						if (!bv->IsValidOffset(loadAddr))
+						{
+							ProcessOffImageLoad(ctx, func, ssa, srcExpr);
+						}
+					}
+				}
+				// Also want to load the various MLIL_CONSTs that are created from
+				// constant dataflow resolving the MLIL_LOAD_SSAs
+
+				// Looking for an MLIL_CONST whose LLILSSA maps to a form
+				// containing an LLIL_LOAD_SSA
+				if (expr.operation == MLIL_CONST)
+				{
+					auto loadAddr = expr.GetConstant<MLIL_CONST>();
+					auto llils = expr.function->GetLowLevelILExprIndexes(expr.exprIndex);
+					auto llilSsa = expr.function->GetLowLevelIL()->GetSSAForm();
+					for (auto& llil: llils)
+					{
+						auto llilInstr = llilSsa->GetInstruction(llil);
+						if (llilInstr.operation == LLIL_SET_REG_SSA)
+						{
+							auto src = llilInstr.GetSourceExpr<LLIL_SET_REG_SSA>();
+							if (src.operation == LLIL_LOAD_SSA)
+							{
+								// Close enough, try it
+								if (!bv->IsValidOffset(loadAddr))
+								{
+									ProcessOffImageLoad(ctx, func, ssa, expr);
+								}
+								break;
+							}
+						}
+					}
+				}
+
+				return true;
+			});
+		}
+	}
+}
+
+
 static constexpr auto workflowInfo = R"({
   "title": "Shared Cache Workflow",
   "description": "Shared Cache Workflow",
@@ -425,10 +512,12 @@ void fixObjCCallTypes(Ref<AnalysisContext> ctx)
 void SharedCacheWorkflow::Register()
 {
 	Ref<Workflow> wf = BinaryNinja::Workflow::Instance("core.function.baseAnalysis")->Clone("core.function.dsc");
-	wf->RegisterActivity(new BinaryNinja::Activity("core.analysis.dscstubs", &SharedCacheWorkflow::FixupStubs));
-	wf->RegisterActivity(new BinaryNinja::Activity("core.analysis.fixObjCCallTypes", &fixObjCCallTypes));
-	wf->Insert("core.function.analyzeTailCalls", "core.analysis.fixObjCCallTypes");
-	wf->Insert("core.function.analyzeTailCalls", "core.analysis.dscstubs");
+	wf->RegisterActivity(new BinaryNinja::Activity("dsc.analysis.fixObjCCallTypes", &fixObjCCallTypes));
+	wf->RegisterActivity(new BinaryNinja::Activity("dsc.analysis.fixupStubs", &SharedCacheWorkflow::FixupStubs));
+	wf->RegisterActivity(new BinaryNinja::Activity("dsc.analysis.fixupSymbols", &SharedCacheWorkflow::FixupSymbols));
+	wf->Insert("core.function.analyzeTailCalls", "dsc.analysis.fixObjCCallTypes");
+	wf->Insert("core.function.analyzeTailCalls", "dsc.analysis.fixupStubs");
+	wf->Insert("core.function.analyzeTailCalls", "dsc.analysis.fixupSymbols");
 
 	BinaryNinja::Workflow::RegisterWorkflow(wf, workflowInfo);
 }
