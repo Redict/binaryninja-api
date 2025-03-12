@@ -370,7 +370,7 @@ void SharedCacheWorkflow::FixupSymbols(Ref<AnalysisContext> ctx)
 					{
 						auto loadAddr = (uint64_t)srcExpr.GetConstant();
 						// Check if this constant is in an unloaded region
-						if (!bv->IsValidOffset(loadAddr))
+						if (!bv->IsValidOffset(loadAddr) && !bv->GetSymbolByAddress(loadAddr))
 						{
 							ProcessOffImageLoad(ctx, func, ssa, srcExpr);
 						}
@@ -395,7 +395,7 @@ void SharedCacheWorkflow::FixupSymbols(Ref<AnalysisContext> ctx)
 							if (src.operation == LLIL_LOAD_SSA)
 							{
 								// Close enough, try it
-								if (!bv->IsValidOffset(loadAddr))
+								if (!bv->IsValidOffset(loadAddr) && !bv->GetSymbolByAddress(loadAddr))
 								{
 									ProcessOffImageLoad(ctx, func, ssa, expr);
 								}
