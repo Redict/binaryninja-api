@@ -122,24 +122,24 @@ void SharedCacheWorkflow::ProcessOffImageCall(Ref<AnalysisContext> ctx, Ref<Shar
 			auto workflowState = GetGlobalWorkflowState(bv);
 			if (dest.operation != MLIL_CONST_PTR && dest.operation != MLIL_CONST)
 				return;
-			if (workflowState->autoLoadStubsAndDyldData &&
-					(cache->GetNameForAddress(dest.GetConstant()).find("dyld_shared_cache_branch_islands") != std::string::npos
-						|| cache->GetNameForAddress(dest.GetConstant()).find("::_stubs") != std::string::npos
-					)
-				)
-
+			auto addr = (uint64_t)dest.GetConstant();
+			if (workflowState->autoLoadStubsAndDyldData)
 			{
-				if (cache->LoadSectionAtAddress(dest.GetConstant()))
+				auto region = cache->GetRegionForAddress(addr);
+				if (region.has_value() && (region->type == MemoryRegionTypeStubIsland || region->type == MemoryRegionTypeNonImage))
 				{
-					func->Reanalyze();
+					if (cache->LoadSectionAtAddress(addr))
+					{
+						func->Reanalyze();
+					}
 				}
-			}
-			else
-			{
-				if (applySymbolIfFoundToCurrentFunction)
-					cache->FindSymbolAtAddrAndApplyToAddr(dest.GetConstant(), func->GetStart(), false);
-				else
-					cache->FindSymbolAtAddrAndApplyToAddr(dest.GetConstant(), dest.GetConstant(), false);
+				else if (region.has_value())
+				{
+					if (applySymbolIfFoundToCurrentFunction)
+						cache->FindSymbolAtAddrAndApplyToAddr(addr, func->GetStart(), false);
+					else
+						cache->FindSymbolAtAddrAndApplyToAddr(addr, addr, false);
+				}
 			}
 	});
 }
@@ -153,10 +153,20 @@ void SharedCacheWorkflow::ProcessOffImageLoad(Ref<AnalysisContext> ctx, Ref<Shar
 		if (dest.operation != MLIL_CONST_PTR && dest.operation != MLIL_CONST)
 			return;
 		auto addr = (uint64_t)dest.GetConstant();
-		if (!cache->GetNameForAddress(addr).empty()
-			&& cache->LoadSectionAtAddress(addr))
+		if (workflowState->autoLoadStubsAndDyldData)
 		{
-			func->Reanalyze();
+			auto region = cache->GetRegionForAddress(addr);
+			if (region.has_value() && (region->type == MemoryRegionTypeStubIsland || region->type == MemoryRegionTypeNonImage))
+			{
+				if (cache->LoadSectionAtAddress(addr))
+				{
+					func->Reanalyze();
+				}
+			}
+			else if (region.has_value())
+			{
+				cache->FindSymbolAtAddrAndApplyToAddr(addr, addr, false);
+			}
 		}
 	});
 }
@@ -378,7 +388,7 @@ void SharedCacheWorkflow::FixupSymbols(Ref<AnalysisContext> ctx)
 					auto llilSsa = expr.function->GetLowLevelIL()->GetSSAForm();
 					for (auto& llil: llils)
 					{
-						auto llilInstr = llilSsa->GetInstruction(llil);
+						auto llilInstr = llilSsa->GetExpr(llil);
 						if (llilInstr.operation == LLIL_SET_REG_SSA)
 						{
 							auto src = llilInstr.GetSourceExpr<LLIL_SET_REG_SSA>();
