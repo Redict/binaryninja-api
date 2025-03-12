@@ -66,7 +66,7 @@ namespace SharedCacheAPI {
 		BNDSCViewProcessAllObjCSections(m_object);
 	}
 
-	std::vector<DSCMemoryRegion> SharedCache::GetLoadedMemoryRegions()
+	std::vector<DSCMappedMemoryRegion> SharedCache::GetLoadedMemoryRegions()
 	{
 		size_t count;
 		BNDSCMappedMemoryRegion* value = BNDSCViewGetLoadedRegions(m_object, &count);
@@ -75,10 +75,10 @@ namespace SharedCacheAPI {
 			return {};
 		}
 
-		std::vector<DSCMemoryRegion> result;
+		std::vector<DSCMappedMemoryRegion> result;
 		for (size_t i = 0; i < count; i++)
 		{
-			DSCMemoryRegion region;
+			DSCMappedMemoryRegion region;
 			region.vmAddress = value[i].vmAddress;
 			region.size = value[i].size;
 			region.prettyName = value[i].name;
@@ -192,6 +192,22 @@ namespace SharedCacheAPI {
 			return {};
 		std::string result = name;
 		BNFreeString(name);
+		return result;
+	}
+
+	std::optional<DSCMemoryRegion> SharedCache::GetRegionForAddress(uint64_t address)
+	{
+		BNDSCMemoryRegion region;
+		if (!BNDSCViewGetRegionForAddress(m_object, address, &region))
+			return std::nullopt;
+
+		DSCMemoryRegion result;
+		result.prettyName = region.prettyName;
+		result.start = region.start;
+		result.size = region.size;
+		result.flags = (BNSegmentFlag)region.flags;
+		result.type = region.type;
+		BNFreeString(region.prettyName);
 		return result;
 	}
 

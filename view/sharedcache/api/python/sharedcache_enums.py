@@ -7,6 +7,13 @@ class BackingCacheType(enum.IntEnum):
 	BackingCacheTypeSymbols = 2
 
 
+class DSCMemoryRegionType(enum.IntEnum):
+	MemoryRegionTypeImage = 0
+	MemoryRegionTypeStubIsland = 1
+	MemoryRegionTypeDyldData = 2
+	MemoryRegionTypeNonImage = 3
+
+
 class DSCViewLoadProgress(enum.IntEnum):
 	LoadProgressNotStarted = 0
 	LoadProgressLoadingCaches = 1

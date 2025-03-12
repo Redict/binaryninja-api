@@ -30,13 +30,7 @@ namespace SharedCacheCore {
 
 	struct MemoryRegion : public MetadataSerializable<MemoryRegion>
 	{
-		enum class Type
-		{
-			Image,
-			StubIsland,
-			DyldData,
-			NonImage,
-		};
+		using Type = BNDSCMemoryRegionType;
 
 		std::string prettyName;
 		uint64_t start;
@@ -46,7 +40,6 @@ namespace SharedCacheCore {
 		uint64_t imageStart = 0;
 		BNSegmentFlag flags;
 		Type type;
-
 
 		AddressRange AsAddressRange() const
 		{
@@ -615,6 +608,7 @@ namespace SharedCacheCore {
 		std::vector<std::string> GetAvailableImages();
 
 		std::vector<const MemoryRegion*> GetMappedRegions() const;
+		const MemoryRegion* RegionForAddress(uint64_t address);
 		bool IsMemoryMapped(uint64_t address);
 
 		std::unordered_map<std::string, std::vector<Ref<Symbol>>> LoadAllSymbolsAndWait();

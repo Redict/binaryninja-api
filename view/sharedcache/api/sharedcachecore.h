@@ -70,6 +70,13 @@ extern "C"
 		BackingCacheTypeSymbols,
 	} BNBackingCacheType;
 
+	typedef enum BNDSCMemoryRegionType {
+		MemoryRegionTypeImage,
+		MemoryRegionTypeStubIsland,
+		MemoryRegionTypeDyldData,
+		MemoryRegionTypeNonImage,
+	} BNDSCMemoryRegionType;
+
 	typedef struct BNBinaryView BNBinaryView;
 	typedef struct BNSharedCache BNSharedCache;
 	typedef struct BNStringRef BNStringRef;
@@ -89,6 +96,14 @@ extern "C"
 		BNDSCImageMemoryMapping* mappings;
 		size_t mappingCount;
 	} BNDSCImage;
+
+	typedef struct BNDSCMemoryRegion {
+		char* prettyName;
+		uint64_t start;
+		uint64_t size;
+		/* BNSegmentFlag */ uint32_t flags;
+		BNDSCMemoryRegionType type;
+	} BNDSCMemoryRegion;
 
 	typedef struct BNDSCMappedMemoryRegion {
 		uint64_t vmAddress;
@@ -136,6 +151,7 @@ extern "C"
 
 	SHAREDCACHE_FFI_API char* BNDSCViewGetNameForAddress(BNSharedCache* cache, uint64_t address);
 	SHAREDCACHE_FFI_API char* BNDSCViewGetImageNameForAddress(BNSharedCache* cache, uint64_t address);
+	SHAREDCACHE_FFI_API bool BNDSCViewGetRegionForAddress(BNSharedCache* cache, uint64_t address, BNDSCMemoryRegion* region);
 
 	SHAREDCACHE_FFI_API BNDSCViewState BNDSCViewGetState(BNSharedCache* cache);
 	SHAREDCACHE_FFI_API BNDSCViewLoadProgress BNDSCViewGetLoadProgress(uint64_t sessionID);

@@ -90,6 +90,14 @@ namespace SharedCacheAPI {
 	};
 
 	struct DSCMemoryRegion {
+		std::string prettyName;
+		uint64_t start;
+		uint64_t size;
+		BNSegmentFlag flags;
+		BNDSCMemoryRegionType type;
+	};
+
+	struct DSCMappedMemoryRegion {
 		uint64_t vmAddress;
 		uint64_t size;
 		std::string prettyName;
@@ -271,6 +279,7 @@ namespace SharedCacheAPI {
 
 		std::string GetNameForAddress(uint64_t address);
 		std::string GetImageNameForAddress(uint64_t address);
+		std::optional<DSCMemoryRegion> GetRegionForAddress(uint64_t address);
 
 		std::vector<BackingCache> GetBackingCaches();
 		std::vector<DSCImage> GetImages();
@@ -278,7 +287,7 @@ namespace SharedCacheAPI {
 		std::optional<SharedCacheMachOHeader> GetMachOHeaderForImage(std::string name);
 		std::optional<SharedCacheMachOHeader> GetMachOHeaderForAddress(uint64_t address);
 
-		std::vector<DSCMemoryRegion> GetLoadedMemoryRegions();
+		std::vector<DSCMappedMemoryRegion> GetLoadedMemoryRegions();
 
 		void FindSymbolAtAddrAndApplyToAddr(uint64_t symbolLocation, uint64_t targetLocation, bool triggerReanalysis = true) const;
 	};

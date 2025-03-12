@@ -566,7 +566,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 						std::string segNameStr = std::string(segName);
 						stubIslandRegion.prettyName = "dyld_shared_cache_branch_islands_" + std::to_string(i) + "::" + segNameStr;
 						stubIslandRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable | BNSegmentFlag::SegmentExecutable);
-						stubIslandRegion.type = MemoryRegion::Type::StubIsland;
+						stubIslandRegion.type = MemoryRegionTypeStubIsland;
 						nonImageMemoryRegions.push_back(std::move(stubIslandRegion));
 					}
 				}
@@ -675,7 +675,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 				stubIslandRegion.size = size;
 				stubIslandRegion.prettyName = subCacheFilename + "::_stubs";
 				stubIslandRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable | BNSegmentFlag::SegmentExecutable);
-				stubIslandRegion.type = MemoryRegion::Type::StubIsland;
+				stubIslandRegion.type = MemoryRegionTypeStubIsland;
 				nonImageMemoryRegions.push_back(std::move(stubIslandRegion));
 			}
 
@@ -765,7 +765,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 				stubIslandRegion.size = size;
 				stubIslandRegion.prettyName = subCacheFilename + "::_stubs";
 				stubIslandRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable | BNSegmentFlag::SegmentExecutable);
-				stubIslandRegion.type = MemoryRegion::Type::StubIsland;
+				stubIslandRegion.type = MemoryRegionTypeStubIsland;
 				nonImageMemoryRegions.push_back(std::move(stubIslandRegion));
 			}
 		}
@@ -904,7 +904,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 					dyldDataRegion.size = size;
 					dyldDataRegion.prettyName = subCacheFilename + "::_data" + std::to_string(j);
 					dyldDataRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable);
-					dyldDataRegion.type = MemoryRegion::Type::DyldData;
+					dyldDataRegion.type = MemoryRegionTypeDyldData;
 					nonImageMemoryRegions.push_back(std::move(dyldDataRegion));
 				}
 			}
@@ -922,7 +922,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 				stubIslandRegion.size = size;
 				stubIslandRegion.prettyName = subCacheFilename + "::_stubs";
 				stubIslandRegion.flags = (BNSegmentFlag)(BNSegmentFlag::SegmentReadable | BNSegmentFlag::SegmentExecutable);
-				stubIslandRegion.type = MemoryRegion::Type::StubIsland;
+				stubIslandRegion.type = MemoryRegionTypeStubIsland;
 				nonImageMemoryRegions.push_back(std::move(stubIslandRegion));
 			}
 		}
@@ -1027,7 +1027,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 						flags |= SegmentExecutable;
 
 				sectionRegion.flags = (BNSegmentFlag)flags;
-				sectionRegion.type = MemoryRegion::Type::Image;
+				sectionRegion.type = MemoryRegionTypeImage;
 				if (auto region = initialState.AddMemoryRegion(std::move(sectionRegion)))
 					image.regionStarts.push_back(region->start);
 			}
@@ -1057,7 +1057,7 @@ void SharedCache::PerformInitialLoad(std::lock_guard<std::mutex>& lock)
 			region.size = mapping.size;
 			region.prettyName = base_name(cache.path) + "::" + std::to_string(i++);
 			region.flags = SegmentFlagsFromMachOProtections(mapping.initProt, mapping.maxProt);
-			region.type = MemoryRegion::Type::NonImage;
+			region.type = MemoryRegionTypeNonImage;
 			initialState.AddPotentiallyOverlappingMemoryRegion(std::move(region));
 		}
 	}
@@ -1556,7 +1556,16 @@ std::string SharedCache::ImageNameForAddress(uint64_t address)
 	return "";
 }
 
-bool SharedCache::LoadImageContainingAddress(uint64_t address, bool skipObjC)
+const MemoryRegion* SharedCache::RegionForAddress(uint64_t address)
+{
+	if (auto it = m_cacheInfo->memoryRegions.find(address); it != m_cacheInfo->memoryRegions.end())
+		return &it->second;
+
+	return nullptr;
+}
+
+
+	bool SharedCache::LoadImageContainingAddress(uint64_t address, bool skipObjC)
 {
 	if (auto header = HeaderForAddress(address)) {
 		std::lock_guard lock(m_mutex);
@@ -3766,6 +3775,25 @@ extern "C"
 		}
 
 		return nullptr;
+	}
+
+	bool BNDSCViewGetRegionForAddress(BNSharedCache* cache, uint64_t address, BNDSCMemoryRegion* region)
+	{
+		if (cache->object)
+		{
+			const MemoryRegion* r = cache->object->RegionForAddress(address);
+			if (!r)
+			{
+				return false;
+			}
+			region->prettyName = BNAllocString(r->prettyName.c_str());
+			region->start = r->start;
+			region->size = r->size;
+			region->flags = r->flags;
+			region->type = r->type;
+			return true;
+		}
+		return false;
 	}
 
 	uint64_t BNDSCViewLoadedImageCount(BNSharedCache* cache)
