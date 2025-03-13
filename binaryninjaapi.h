@@ -16940,14 +16940,41 @@ namespace BinaryNinja {
 		T QueryProperty(const std::string& key, const std::string& property);
 
 		bool UpdateProperty(const std::string& key, const std::string& property);
-		bool UpdateProperty(const std::string& key, const std::string& property, bool value);
-		bool UpdateProperty(const std::string& key, const std::string& property, double value);
-		bool UpdateProperty(const std::string& key, const std::string& property, int value);
-		bool UpdateProperty(const std::string& key, const std::string& property, int64_t value);
-		bool UpdateProperty(const std::string& key, const std::string& property, uint64_t value);
-		bool UpdateProperty(const std::string& key, const std::string& property, const char* value);
-		bool UpdateProperty(const std::string& key, const std::string& property, const std::string& value);
-		bool UpdateProperty(const std::string& key, const std::string& property, const std::vector<std::string>& value);
+		bool UpdateBoolProperty(const std::string& key, const std::string& property, bool value);
+		bool UpdateDoubleProperty(const std::string& key, const std::string& property, double value);
+		bool UpdateIntProperty(const std::string& key, const std::string& property, int value);
+		bool UpdateInt64Property(const std::string& key, const std::string& property, int64_t value);
+		bool UpdateUInt64Property(const std::string& key, const std::string& property, uint64_t value);
+		bool UpdateStringProperty(const std::string& key, const std::string& property, const char* value);
+		bool UpdateStringProperty(const std::string& key, const std::string& property, const std::string& value);
+		bool UpdateStringListProperty(const std::string& key, const std::string& property, const std::vector<std::string>& value);
+		bool UpdateProperty(const std::string& key, const std::string& property, std::initializer_list<std::string> values) {
+			return UpdateStringListProperty(key, property, std::vector<std::string>(values));
+		}
+
+		template<typename T>
+		bool UpdateProperty(const std::string& key, const std::string& property, const T& value) {
+			if constexpr (std::is_same_v<T, bool>)
+				return UpdateBoolProperty(key, property, value);
+			else if constexpr (std::is_same_v<T, double>)
+				return UpdateDoubleProperty(key, property, value);
+			else if constexpr (std::is_same_v<T, int>)
+				return UpdateIntProperty(key, property, value);
+			else if constexpr (std::is_same_v<T, int64_t>)
+				return UpdateInt64Property(key, property, value);
+			else if constexpr (std::is_same_v<T, uint64_t>)
+				return UpdateUInt64Property(key, property, value);
+			else if constexpr (std::is_same_v<T, const char*>)
+				return UpdateStringProperty(key, property, value);
+			else if constexpr (std::is_array_v<T> && std::is_same_v<std::remove_extent_t<T>, char>)
+				return UpdateStringProperty(key, property, value);
+			else if constexpr (std::is_same_v<std::decay_t<T>, std::string>)
+				return UpdateStringProperty(key, property, value);
+			else if constexpr (std::is_same_v<T, std::vector<std::string>>)
+				return UpdateStringListProperty(key, property, value);
+			else
+				static_assert(std::is_same_v<T, void> && !std::is_same_v<T, void>, "Unsupported type for API::Settings::UpdateProperty");
+		}
 
 		bool DeserializeSchema(const std::string& schema, BNSettingsScope scope = SettingsAutoScope, bool merge = true);
 		std::string SerializeSchema();
@@ -16988,24 +17015,39 @@ namespace BinaryNinja {
 		*/
 		std::string GetJson(const std::string& key, Ref<BinaryView> view = nullptr, BNSettingsScope* scope = nullptr);
 
-		bool Set(const std::string& key, bool value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, double value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, int value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, int64_t value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, uint64_t value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const char* value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const std::string& value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const std::vector<std::string>& value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
-		bool SetJson(const std::string& key, const std::string& value, Ref<BinaryView> view = nullptr,
-		    BNSettingsScope scope = SettingsAutoScope);
+		bool SetBool(const std::string& key, bool value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+		bool SetDouble(const std::string& key, double value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+		bool SetInt(const std::string& key, int value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+		bool SetInt64(const std::string& key, int64_t value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+		bool SetUInt64(const std::string& key, uint64_t value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+		bool SetString(const std::string& key, const char* value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+		bool SetString(const std::string& key, const std::string& value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+		bool SetStringList(const std::string& key, const std::vector<std::string>& value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+		bool SetJson(const std::string& key, const std::string& value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope);
+
+		template<typename T>
+		bool Set(const std::string& key, const T& value, Ref<BinaryView> view = nullptr, BNSettingsScope scope = SettingsAutoScope) {
+			if constexpr (std::is_same_v<T, bool>)
+				return SetBool(key, value, view, scope);
+			else if constexpr (std::is_same_v<T, double>)
+				return SetDouble(key, value, view, scope);
+			else if constexpr (std::is_same_v<T, int>)
+				return SetInt(key, value, view, scope);
+			else if constexpr (std::is_same_v<T, int64_t>)
+				return SetInt64(key, value, view, scope);
+			else if constexpr (std::is_same_v<T, uint64_t>)
+				return SetUInt64(key, value, view, scope);
+			else if constexpr (std::is_same_v<T, const char*>)
+				return SetString(key, value, view, scope);
+			else if constexpr (std::is_array_v<T> && std::is_same_v<std::remove_extent_t<T>, char>)
+				return SetString(key, value, view, scope);
+			else if constexpr (std::is_same_v<std::decay_t<T>, std::string>)
+				return SetString(key, value, view, scope);
+			else if constexpr (std::is_same_v<T, std::vector<std::string>>)
+				return SetStringList(key, value, view, scope);
+			else
+				static_assert(std::is_same_v<T, void> && !std::is_same_v<T, void>, "Unsupported type for API::Settings::Set");
+		}
 
 		// Function Settings
 		bool DeserializeSettings(const std::string& contents, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
@@ -17019,15 +17061,39 @@ namespace BinaryNinja {
 
 		std::string GetJson(const std::string& key, Ref<Function> func, BNSettingsScope* scope = nullptr);
 
-		bool Set(const std::string& key, bool value, Ref<Function> func,  BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, double value, Ref<Function> func,  BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, int value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, int64_t value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, uint64_t value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const char* value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const std::string& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
-		bool Set(const std::string& key, const std::vector<std::string>& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool SetBool(const std::string& key, bool value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool SetDouble(const std::string& key, double value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool SetInt(const std::string& key, int value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool SetInt64(const std::string& key, int64_t value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool SetUInt64(const std::string& key, uint64_t value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool SetString(const std::string& key, const char* value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool SetString(const std::string& key, const std::string& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+		bool SetStringList(const std::string& key, const std::vector<std::string>& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
 		bool SetJson(const std::string& key, const std::string& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope);
+
+		template<typename T>
+		bool Set(const std::string& key, const T& value, Ref<Function> func, BNSettingsScope scope = SettingsAutoScope) {
+			if constexpr (std::is_same_v<T, bool>)
+				return SetBool(key, value, func, scope);
+			else if constexpr (std::is_same_v<T, double>)
+				return SetDouble(key, value, func, scope);
+			else if constexpr (std::is_same_v<T, int>)
+				return SetInt(key, value, func, scope);
+			else if constexpr (std::is_same_v<T, int64_t>)
+				return SetInt64(key, value, func, scope);
+			else if constexpr (std::is_same_v<T, uint64_t>)
+				return SetUInt64(key, value, func, scope);
+			else if constexpr (std::is_same_v<T, const char*>)
+				return SetString(key, value, func, scope);
+			else if constexpr (std::is_array_v<T> && std::is_same_v<std::remove_extent_t<T>, char>)
+				return SetString(key, value, func, scope);
+			else if constexpr (std::is_same_v<std::decay_t<T>, std::string>)
+				return SetString(key, value, func, scope);
+			else if constexpr (std::is_same_v<T, std::vector<std::string>>)
+				return SetStringList(key, value, func, scope);
+			else
+				static_assert(std::is_same_v<T, void> && !std::is_same_v<T, void>, "Unsupported type for API::Settings::Set");
+		}
 	};
 
 	// explicit specializations
