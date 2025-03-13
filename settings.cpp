@@ -110,50 +110,49 @@ bool Settings::UpdateProperty(const std::string& key, const std::string& propert
 }
 
 
-bool Settings::UpdateProperty(const std::string& key, const std::string& property, bool value)
+bool Settings::UpdateBoolProperty(const std::string& key, const std::string& property, bool value)
 {
 	return BNSettingsUpdateBoolProperty(m_object, key.c_str(), property.c_str(), value);
 }
 
 
-bool Settings::UpdateProperty(const std::string& key, const std::string& property, double value)
+bool Settings::UpdateDoubleProperty(const std::string& key, const std::string& property, double value)
 {
 	return BNSettingsUpdateDoubleProperty(m_object, key.c_str(), property.c_str(), value);
 }
 
 
-bool Settings::UpdateProperty(const std::string& key, const std::string& property, int value)
+bool Settings::UpdateIntProperty(const std::string& key, const std::string& property, int value)
 {
 	return BNSettingsUpdateInt64Property(m_object, key.c_str(), property.c_str(), value);
 }
 
 
-bool Settings::UpdateProperty(const std::string& key, const std::string& property, int64_t value)
+bool Settings::UpdateInt64Property(const std::string& key, const std::string& property, int64_t value)
 {
 	return BNSettingsUpdateInt64Property(m_object, key.c_str(), property.c_str(), value);
 }
 
 
-bool Settings::UpdateProperty(const std::string& key, const std::string& property, uint64_t value)
+bool Settings::UpdateUInt64Property(const std::string& key, const std::string& property, uint64_t value)
 {
 	return BNSettingsUpdateUInt64Property(m_object, key.c_str(), property.c_str(), value);
 }
 
 
-bool Settings::UpdateProperty(const std::string& key, const std::string& property, const char* value)
+bool Settings::UpdateStringProperty(const std::string& key, const std::string& property, const char* value)
 {
 	return BNSettingsUpdateStringProperty(m_object, key.c_str(), property.c_str(), value);
 }
 
 
-bool Settings::UpdateProperty(const std::string& key, const std::string& property, const std::string& value)
+bool Settings::UpdateStringProperty(const std::string& key, const std::string& property, const std::string& value)
 {
 	return BNSettingsUpdateStringProperty(m_object, key.c_str(), property.c_str(), value.c_str());
 }
 
 
-bool Settings::UpdateProperty(
-    const std::string& key, const std::string& property, const std::vector<std::string>& value)
+bool Settings::UpdateStringListProperty(const std::string& key, const std::string& property, const std::vector<std::string>& value)
 {
 	char** buffer = new char*[value.size()];
 	if (!buffer)
@@ -278,49 +277,49 @@ string Settings::GetJson(const string& key, Ref<BinaryView> view, BNSettingsScop
 }
 
 
-bool Settings::Set(const string& key, bool value, Ref<BinaryView> view, BNSettingsScope scope)
+bool Settings::SetBool(const string& key, bool value, Ref<BinaryView> view, BNSettingsScope scope)
 {
 	return BNSettingsSetBool(m_object, view ? view->GetObject() : nullptr, nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, double value, Ref<BinaryView> view, BNSettingsScope scope)
+bool Settings::SetDouble(const string& key, double value, Ref<BinaryView> view, BNSettingsScope scope)
 {
 	return BNSettingsSetDouble(m_object, view ? view->GetObject() : nullptr, nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, int value, Ref<BinaryView> view, BNSettingsScope scope)
+bool Settings::SetInt(const string& key, int value, Ref<BinaryView> view, BNSettingsScope scope)
 {
 	return BNSettingsSetInt64(m_object, view ? view->GetObject() : nullptr, nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, int64_t value, Ref<BinaryView> view, BNSettingsScope scope)
+bool Settings::SetInt64(const string& key, int64_t value, Ref<BinaryView> view, BNSettingsScope scope)
 {
 	return BNSettingsSetInt64(m_object, view ? view->GetObject() : nullptr, nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, uint64_t value, Ref<BinaryView> view, BNSettingsScope scope)
+bool Settings::SetUInt64(const string& key, uint64_t value, Ref<BinaryView> view, BNSettingsScope scope)
 {
 	return BNSettingsSetUInt64(m_object, view ? view->GetObject() : nullptr, nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, const char* value, Ref<BinaryView> view, BNSettingsScope scope)
+bool Settings::SetString(const string& key, const char* value, Ref<BinaryView> view, BNSettingsScope scope)
 {
 	return BNSettingsSetString(m_object, view ? view->GetObject() : nullptr, nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, const string& value, Ref<BinaryView> view, BNSettingsScope scope)
+bool Settings::SetString(const string& key, const string& value, Ref<BinaryView> view, BNSettingsScope scope)
 {
 	return BNSettingsSetString(m_object, view ? view->GetObject() : nullptr, nullptr, scope, key.c_str(), value.c_str());
 }
 
 
-bool Settings::Set(const string& key, const vector<string>& value, Ref<BinaryView> view, BNSettingsScope scope)
+bool Settings::SetStringList(const string& key, const vector<string>& value, Ref<BinaryView> view, BNSettingsScope scope)
 {
 	char** buffer = new char*[value.size()];
 	if (!buffer)
@@ -436,49 +435,49 @@ string Settings::GetJson(const string& key, Ref<Function> func, BNSettingsScope*
 }
 
 
-bool Settings::Set(const string& key, bool value, Ref<Function> func, BNSettingsScope scope)
+bool Settings::SetBool(const string& key, bool value, Ref<Function> func, BNSettingsScope scope)
 {
 	return BNSettingsSetBool(m_object, nullptr, func ? func->GetObject() : nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, double value, Ref<Function> func, BNSettingsScope scope)
+bool Settings::SetDouble(const string& key, double value, Ref<Function> func, BNSettingsScope scope)
 {
 	return BNSettingsSetDouble(m_object, nullptr, func ? func->GetObject() : nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, int value, Ref<Function> func, BNSettingsScope scope)
+bool Settings::SetInt(const string& key, int value, Ref<Function> func, BNSettingsScope scope)
 {
 	return BNSettingsSetInt64(m_object, nullptr, func ? func->GetObject() : nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, int64_t value, Ref<Function> func, BNSettingsScope scope)
+bool Settings::SetInt64(const string& key, int64_t value, Ref<Function> func, BNSettingsScope scope)
 {
 	return BNSettingsSetInt64(m_object, nullptr, func ? func->GetObject() : nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, uint64_t value, Ref<Function> func, BNSettingsScope scope)
+bool Settings::SetUInt64(const string& key, uint64_t value, Ref<Function> func, BNSettingsScope scope)
 {
 	return BNSettingsSetUInt64(m_object, nullptr, func ? func->GetObject() : nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, const char* value, Ref<Function> func, BNSettingsScope scope)
+bool Settings::SetString(const string& key, const char* value, Ref<Function> func, BNSettingsScope scope)
 {
 	return BNSettingsSetString(m_object, nullptr, func ? func->GetObject() : nullptr, scope, key.c_str(), value);
 }
 
 
-bool Settings::Set(const string& key, const string& value, Ref<Function> func, BNSettingsScope scope)
+bool Settings::SetString(const string& key, const string& value, Ref<Function> func, BNSettingsScope scope)
 {
 	return BNSettingsSetString(m_object, nullptr, func ? func->GetObject() : nullptr, scope, key.c_str(), value.c_str());
 }
 
 
-bool Settings::Set(const string& key, const vector<string>& value, Ref<Function> func, BNSettingsScope scope)
+bool Settings::SetStringList(const string& key, const vector<string>& value, Ref<Function> func, BNSettingsScope scope)
 {
 	char** buffer = new char*[value.size()];
 	if (!buffer)
