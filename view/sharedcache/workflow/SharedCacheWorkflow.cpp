@@ -366,7 +366,7 @@ void SharedCacheWorkflow::FixupSymbols(Ref<AnalysisContext> ctx)
 				if (expr.operation == MLIL_LOAD_SSA)
 				{
 					auto srcExpr = expr.GetSourceExpr<MLIL_LOAD_SSA>();
-					if (srcExpr.operation == MLIL_CONST_PTR)
+					if (srcExpr.operation == MLIL_CONST || srcExpr.operation == MLIL_CONST_PTR)
 					{
 						auto loadAddr = (uint64_t)srcExpr.GetConstant();
 						// Check if this constant is in an unloaded region
@@ -381,9 +381,9 @@ void SharedCacheWorkflow::FixupSymbols(Ref<AnalysisContext> ctx)
 
 				// Looking for an MLIL_CONST whose LLILSSA maps to a form
 				// containing an LLIL_LOAD_SSA
-				if (expr.operation == MLIL_CONST)
+				if (expr.operation == MLIL_CONST || expr.operation == MLIL_CONST_PTR)
 				{
-					auto loadAddr = expr.GetConstant<MLIL_CONST>();
+					auto loadAddr = (uint64_t)expr.GetConstant();
 					auto llils = expr.function->GetLowLevelILExprIndexes(expr.exprIndex);
 					auto llilSsa = expr.function->GetLowLevelIL()->GetSSAForm();
 					for (auto& llil: llils)
