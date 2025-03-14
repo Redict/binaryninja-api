@@ -399,6 +399,18 @@ void SharedCacheWorkflow::FixupSymbols(Ref<AnalysisContext> ctx)
 								{
 									ProcessOffImageLoad(ctx, func, ssa, expr);
 								}
+								else if (bv->IsValidOffset(loadAddr) && bv->GetSymbolByAddress(loadAddr))
+								{
+									// Already have a symbol here, make it a pointer type
+									auto type = mlil->GetExprType(ssa->GetNonSSAExprIndex(expr.exprIndex));
+									if (!type->IsPointer() && type.GetConfidence() == 0)
+									{
+										mlil->SetExprType(
+											ssa->GetNonSSAExprIndex(expr.exprIndex),
+											Type::PointerType(arch, Type::VoidType()->WithConfidence(0))->WithConfidence(BN_HEURISTIC_CONFIDENCE)
+										);
+									}
+								}
 								break;
 							}
 						}
