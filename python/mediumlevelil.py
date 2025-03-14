@@ -3384,6 +3384,14 @@ class MediumLevelILFunction:
 		for block in self.basic_blocks:
 			yield from block
 
+	@property
+	def exprs(self) -> Iterator['MediumLevelILInstruction']:
+		"""
+		A generator of all instructions and their sub-expressions in the current function.
+		Expressions will be returned as a pre-order traversal (parent exprs before children).
+		"""
+		return self.traverse(lambda expr: expr)
+
 	def traverse(self, cb: Callable[['MediumLevelILInstruction', Any], Any], *args: Any, **kwargs: Any) -> Iterator[Any]:
 		"""
 		``traverse`` iterates through all the instructions in the MediumLevelILInstruction and calls the callback function for

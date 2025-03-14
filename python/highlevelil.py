@@ -2706,6 +2706,14 @@ class HighLevelILFunction:
 			yield from block
 
 	@property
+	def exprs(self) -> Iterator['HighLevelILInstruction']:
+		"""
+		A generator of all instructions and their sub-expressions in the current function.
+		Expressions will be returned as a pre-order traversal (parent exprs before children).
+		"""
+		return self.traverse(lambda expr: expr)
+
+	@property
 	def ssa_form(self) -> 'HighLevelILFunction':
 		"""High level IL in SSA form (read-only)"""
 		result = core.BNGetHighLevelILSSAForm(self.handle)

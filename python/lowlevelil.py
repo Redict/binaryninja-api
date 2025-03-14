@@ -3428,6 +3428,14 @@ class LowLevelILFunction:
 		for block in self.basic_blocks:
 			yield from block
 
+	@property
+	def exprs(self) -> Iterator['LowLevelILInstruction']:
+		"""
+		A generator of all instructions and their sub-expressions in the current function.
+		Expressions will be returned as a pre-order traversal (parent exprs before children).
+		"""
+		return self.traverse(lambda expr: expr)
+
 	def traverse(self, cb: Callable[['LowLevelILInstruction', Any], Any], *args: Any, **kwargs: Any) -> Iterator[Any]:
 		"""
 		``traverse`` iterates through all the instructions in the LowLevelILFunction and calls the callback function for
