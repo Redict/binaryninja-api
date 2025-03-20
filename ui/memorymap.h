@@ -287,12 +287,25 @@ class BINARYNINJAUIAPI MemoryMapContainer : public QWidget, public ViewContainer
 
 	MemoryMapView* m_memoryMap;
 	MemoryMapSidebarWidget* m_widget;
+	ViewFrame* m_viewFrame;
 
 public:
 	MemoryMapContainer(BinaryViewRef data, MemoryMapSidebarWidget* parent);
+	MemoryMapContainer(BinaryViewRef data, ViewFrame* viewFrame);
 	virtual View* getView() override { return m_memoryMap; }
 
 	MemoryMapView* getMemoryMapView() { return m_memoryMap; }
+	ViewFrame* getViewFrame() const
+	{
+		if (m_viewFrame)
+			return m_viewFrame;
+
+		// If we don't have a cached view frame, try to find it
+		return ViewFrame::viewFrameForWidget(const_cast<MemoryMapContainer*>(this));
+	}
+
+	// Helper to check if we're in sidebar mode
+	bool isSidebarWidget() const { return m_widget != nullptr; }
 
 protected:
 	virtual void focusInEvent(QFocusEvent* event) override;
