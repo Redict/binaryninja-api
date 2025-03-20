@@ -3716,13 +3716,18 @@ bool MachoViewType::IsTypeValidForData(BinaryView* data)
 	if (!data)
 		return false;
 
-	DataBuffer sig = data->ReadBuffer(data->GetStart(), 4);
-	if (sig.GetLength() != 4)
+	DataBuffer sig = data->ReadBuffer(data->GetStart(), 16);
+	if (sig.GetLength() != 16)
 		return false;
 
 	uint32_t magic = *(uint32_t*)sig.GetData();
 	if (magic == MH_CIGAM || magic == MH_CIGAM_64 || magic == MH_MAGIC || magic == MH_MAGIC_64)
+	{
+		uint32_t fileType = ((uint32_t*)sig.GetData())[3];
+		if (fileType == MH_FILESET)
+			return false;
 		return true;
+	}
 	magic = ToBE32(magic);
 	if ((magic == FAT_MAGIC) || (magic == FAT_MAGIC_64))
 		return true;
