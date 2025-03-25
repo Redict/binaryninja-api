@@ -1926,6 +1926,8 @@ extern "C"
 
 		BNType* (*getGlobalRegisterType)(void* ctxt, uint32_t reg);
 
+		size_t (*getAddressSize)(void* ctxt);
+
 		void (*adjustTypeParserInput)(
 			void* ctxt,
 			BNTypeParser* parser,
@@ -6940,6 +6942,7 @@ extern "C"
 
 	BINARYNINJACOREAPI uint32_t* BNGetPlatformGlobalRegisters(BNPlatform* platform, size_t* count);
 	BINARYNINJACOREAPI BNType* BNGetPlatformGlobalRegisterType(BNPlatform* platform, uint32_t reg);
+	BINARYNINJACOREAPI size_t BNGetPlatformAddressSize(BNPlatform* platform);
 	BINARYNINJACOREAPI void BNPlatformAdjustTypeParserInput(
 		BNPlatform* platform,
 		BNTypeParser* parser,

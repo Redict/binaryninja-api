@@ -15487,6 +15487,7 @@ namespace BinaryNinja {
 		static void InitViewCallback(void* ctxt, BNBinaryView* view);
 		static uint32_t* GetGlobalRegistersCallback(void* ctxt, size_t* count);
 		static void FreeRegisterListCallback(void* ctxt, uint32_t* regs, size_t count);
+		static size_t GetAddressSizeCallback(void* ctxt);
 		static BNType* GetGlobalRegisterTypeCallback(void* ctxt, uint32_t reg);
 		static void AdjustTypeParserInputCallback(
 			void* ctxt,
@@ -15671,6 +15672,12 @@ namespace BinaryNinja {
 		 */
 		virtual Ref<Type> GetGlobalRegisterType(uint32_t reg);
 
+		/*! Get the address size for this platform
+
+			\return The address size for this platform
+		*/
+		virtual size_t GetAddressSize() const;
+
 		/*! Modify the input passed to the Type Parser with Platform-specific features.
 
 			\param[in] parser Type Parser instance
@@ -15798,6 +15805,7 @@ namespace BinaryNinja {
 			std::vector<std::string>& arguments,
 			std::vector<std::pair<std::string, std::string>>& sourceFiles
 		) override;
+		virtual size_t GetAddressSize() const override;
 	};
 
 	/*!
