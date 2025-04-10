@@ -3730,27 +3730,39 @@ Ref<BinaryView> MachoViewType::Parse(BinaryView* data)
 bool MachoViewType::IsTypeValidForData(BinaryView* data)
 {
 	if (!data)
+	{
+		// Can't be valid if we don't have any data
 		return false;
+	}
 
-	DataBuffer sig = data->ReadBuffer(data->GetStart(), 4);
-	if (sig.GetLength() != 4)
-		return false;
-
-	uint32_t magic = *(uint32_t*)sig.GetData();
-	if (magic == MH_CIGAM || magic == MH_CIGAM_64 || magic == MH_MAGIC || magic == MH_MAGIC_64)
-		return true;
-	magic = ToBE32(magic);
-	if ((magic == FAT_MAGIC) || (magic == FAT_MAGIC_64))
-		return true;
-
-	// If it's an MH_FILESET, return false, these are now handled by the KernelCache plugin by default
 	DataBuffer header = data->ReadBuffer(data->GetStart(), sizeof(mach_header_64));
 	if (header.GetLength() < sizeof(mach_header_64))
+	{
+		// Can't be valid if we don't have enough data for a header
 		return false;
-	const mach_header_64* mh = (const mach_header_64*)header.GetData();
-	uint32_t filetype = mh->magic == MH_MAGIC_64 || mh->magic == MH_MAGIC ? mh->filetype : ToBE32(mh->filetype);
-	if (filetype == MH_FILESET)
-		return false;
+	}
+
+	auto mh = (const mach_header_64*)header.GetData();
+	if (mh->magic == MH_MAGIC || mh->magic == MH_MAGIC_64)
+	{
+		// MH_FILESET is now handled by the KernelCache view instead
+		if (mh->filetype != MH_FILESET)
+			return true;
+		else
+			return false;
+	}
+	else if (mh->magic == MH_CIGAM || mh->magic == MH_CIGAM_64)
+	{
+		// MH_FILESET is now handled by the KernelCache view instead
+		if (ToBE32(mh->filetype) != MH_FILESET)
+			return true;
+		else
+			return false;
+	}
+	else if (ToBE32(mh->magic) == FAT_MAGIC || ToBE32(mh->magic) == FAT_MAGIC_64)
+	{
+		return true;
+	}
 
 	return data->GetLoadSettings(GetName()) ? true : false;
 }
