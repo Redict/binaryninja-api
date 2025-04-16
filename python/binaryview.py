@@ -9708,7 +9708,7 @@ to a the type "tagRECT" found in the typelibrary "winX64common"
 			>>> bv.set_comment_at(here, "hi")
 
 		"""
-		core.BNSetGlobalCommentForAddress(self.handle, addr, comment)
+		core.BNSetGlobalCommentForAddress(self.handle, addr, str(comment))
 
 	@property
 	def debug_info(self) -> "debuginfo.DebugInfo":
@@ -9748,7 +9748,7 @@ to a the type "tagRECT" found in the typelibrary "winX64common"
 			>>> bv.query_metadata("string")
 			'my_data'
 		"""
-		md_handle = core.BNBinaryViewQueryMetadata(self.handle, key)
+		md_handle = core.BNBinaryViewQueryMetadata(self.handle, str(key))
 		if md_handle is None:
 			raise KeyError(key)
 		return metadata.Metadata(handle=md_handle).value
@@ -9784,7 +9784,7 @@ to a the type "tagRECT" found in the typelibrary "winX64common"
 		_md = md
 		if not isinstance(_md, metadata.Metadata):
 			_md = metadata.Metadata(_md)
-		core.BNBinaryViewStoreMetadata(self.handle, key, _md.handle, isAuto)
+		core.BNBinaryViewStoreMetadata(self.handle, str(key), _md.handle, isAuto)
 
 	def remove_metadata(self, key: str) -> None:
 		"""
@@ -9797,7 +9797,7 @@ to a the type "tagRECT" found in the typelibrary "winX64common"
 			>>> bv.store_metadata("integer", 1337)
 			>>> bv.remove_metadata("integer")
 		"""
-		core.BNBinaryViewRemoveMetadata(self.handle, key)
+		core.BNBinaryViewRemoveMetadata(self.handle, str(key))
 
 	@property
 	def metadata(self) -> Dict[str, 'metadata.MetadataValueType']:
@@ -9860,7 +9860,7 @@ to a the type "tagRECT" found in the typelibrary "winX64common"
 		:return: the load settings
 		:rtype: :py:class:`~binaryninja.settings.Settings`, or ``None``
 		"""
-		settings_handle = core.BNBinaryViewGetLoadSettings(self.handle, type_name)
+		settings_handle = core.BNBinaryViewGetLoadSettings(self.handle, str(type_name))
 		if settings_handle is None:
 			return None
 		return settings.Settings(handle=settings_handle)
@@ -9875,7 +9875,7 @@ to a the type "tagRECT" found in the typelibrary "winX64common"
 		"""
 		if settings is not None:
 			settings = settings.handle
-		core.BNBinaryViewSetLoadSettings(self.handle, type_name, settings)
+		core.BNBinaryViewSetLoadSettings(self.handle, str(type_name), settings)
 
 	def parse_expression(self, expression: str, here: int = 0) -> int:
 		r"""
